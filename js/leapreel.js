@@ -1,17 +1,18 @@
-var lastSwipe = null;
+var lastThrow = null;
 var leapInfo = null;
 var leapBridge = null;
 var isServerConnected = null;
 var controller = null;
 var options = null;
 var isConnected = null;
+var canDrag = true;
 
 
 init();
 
 function init()
 {
-	lastSwipe = new Date();
+	lastThrow = new Date();
 
 	leapInfo = this.leapInfo = document.getElementById('leapInfo');
 	isServerConnected = false;
@@ -78,6 +79,9 @@ function onFrame(frame)
 
   		console.log(velocityX);
 
+  		if (!canDoGesture()){
+  			return;
+  		}
 
   		if (velocityX > 100){
   			$('#image').trigger("stepRight");
@@ -88,14 +92,16 @@ function onFrame(frame)
 
   		if (velocityX < -1000 || velocityX > 1000){
 			$('#image').reel('velocity', 1.5);
+			lastThrow = new Date();
   		} 
+
   	}
 }
 
 function canDoGesture()
 {
 	var now = new Date();
-	var diff = now.getTime() - lastSwipe.getTime();
+	var diff = now.getTime() - lastThrow.getTime();
 
 	var days = Math.floor(diff / (1000 * 60 * 60 * 24));
 	diff -=  days * (1000 * 60 * 60 * 24);
@@ -109,7 +115,7 @@ function canDoGesture()
 	var seconds = Math.floor(diff / (1000));
 	diff -= seconds * (1000);
 
-	if (days > 0 || hours > 0 || mins > 0 || seconds > 1) {
+	if (days > 0 || hours > 0 || mins > 0 || seconds > 0.1) {
 		return true;
 	}
 
