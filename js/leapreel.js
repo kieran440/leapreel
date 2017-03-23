@@ -78,12 +78,17 @@ function onFrame(frame)
 
   		console.log(velocityX);
 
+
   		if (velocityX > 100){
   			$('#image').trigger("stepRight");
   		}
   		else if (velocityX < -100){
   			$('#image').trigger("stepLeft");
   		}
+
+  		if (velocityX < -1000 || velocityX > 1000){
+			$('#image').reel('velocity', 1.5);
+  		} 
   	}
 }
 
