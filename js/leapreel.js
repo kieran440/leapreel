@@ -1,12 +1,18 @@
 var lastThrow = null;
 var leapInfo = null;
-var leapBridge = null;
 var isServerConnected = null;
 var controller = null;
 var options = null;
 var isConnected = null;
 var canDrag = true;
-
+// how long it should wait after a throw before allowing image dragging after a throw
+const throwTimer = 0.08; 
+// the minimum velocity to drag a image
+const dragVelocityThreshold = 100;
+// the minimum velocity to throw
+const throwVelocityThreshold = 1000;
+// should be the same as data-throwable value
+const throwVelocity = 1.5;
 
 init();
 
@@ -74,24 +80,24 @@ function onFrame(frame)
 
   		hand = frame.hands[0];
 
-
   		var velocityX = hand.palmVelocity[0];
 
+  		// debug
   		console.log(velocityX);
 
   		if (!canDoGesture()){
   			return;
   		}
 
-  		if (velocityX > 100){
+  		if (velocityX > dragVelocityThreshold){
   			$('#image').trigger("stepRight");
   		}
-  		else if (velocityX < -100){
+  		else if (velocityX < -dragVelocityThreshold){
   			$('#image').trigger("stepLeft");
   		}
 
-  		if (velocityX < -1000 || velocityX > 1000){
-			$('#image').reel('velocity', 1.5);
+  		if (velocityX < -throwVelocityThreshold || velocityX > throwVelocityThreshold){
+			$('#image').reel('velocity', throwVelocity);
 			lastThrow = new Date();
   		} 
 
@@ -115,20 +121,9 @@ function canDoGesture()
 	var seconds = Math.floor(diff / (1000));
 	diff -= seconds * (1000);
 
-	if (days > 0 || hours > 0 || mins > 0 || seconds > 0.1) {
+	if (days > 0 || hours > 0 || mins > 0 || seconds > throwTimer) {
 		return true;
 	}
 
 	return false;
-}
-
-function ExtendedFingersCount(hand)
-{
-	var count = 0;
-	hand.fingers.forEach(function(finger){
-	    if (finger.extended) {
-	    	count++;
-	    };
-	});
-	return count;
 }
