@@ -73,16 +73,17 @@ function onFrame(frame)
 
   		hand = frame.hands[0];
 
-  		var extendedFingers = ExtendedFingersCount(hand);
 
-    	if (extendedFingers === 2) {
+  		var velocityX = hand.palmVelocity[0];
 
-    		$('#image').trigger("stepLeft");
+  		console.log(velocityX);
 
-    	}
-    	else if (extendedFingers > 2) {
-    		$('#image').trigger("stepRight");
-    	}
+  		if (velocityX > 100){
+  			$('#image').trigger("stepRight");
+  		}
+  		else if (velocityX < -100){
+  			$('#image').trigger("stepLeft");
+  		}
   	}
 }
 
