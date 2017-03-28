@@ -10,7 +10,7 @@ const throwTimer = 0.8;
 // the minimum velocity to drag a image
 const dragVelocityThreshold = 100;
 // the minimum velocity to throw
-const throwVelocityThreshold = 1000;
+const throwVelocityThreshold = 800;
 // should be the same as data-throwable value
 const throwVelocity = 1.5;
 // the image HTML id
@@ -92,25 +92,33 @@ function onFrame(frame)
 	var velocityX = frame.hands[0].palmVelocity[0];
 	//console.log(velocityX);
 
+	// stepping Right or Left?
+	var steppingRight = velocityX >= 0 ? true : false;
+	//console.log(steppingRight);
+
 	if (velocityX < -throwVelocityThreshold || velocityX > throwVelocityThreshold){
+		// make sure to change direction before throwing! Just one step in the right direction :)
+		jumpSteps(1, steppingRight);
 		$('#' + imageID).reel('velocity', throwVelocity);
 		lastThrow = new Date();
+		// no need to go further when throwing
 		return;
 	} 
 
 	var transform = Math.round(velocityX / dragVelocityThreshold);
 	//console.log(transform);
 
-	jumpSteps(transform);
+	jumpSteps(transform, steppingRight);
 }
 
-function jumpSteps(amount){
-	var stepCode = amount >= 0 ? 'stepRight' : 'stepLeft';
+function jumpSteps(nSteps, steppingRight){
+	var stepCode = steppingRight ? 'stepRight' : 'stepLeft';
 
-	amount = Math.abs(amount);
+	// make it positive
+	nSteps = Math.abs(nSteps);
 
 	// for performance reasons (at least in chrome and firefox), it's better to use a while loop (vs. for)
-	while(amount--){
+	while(nSteps--){
 		$('#' + imageID).trigger(stepCode);
 	}
 }
