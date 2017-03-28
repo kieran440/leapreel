@@ -4,15 +4,24 @@ var isServerConnected = null;
 var controller = null;
 var options = null;
 var isConnected = null;
-var canDrag = true;
-// how long it should wait after a throw before allowing image dragging after a throw
-const throwTimer = 0.08; 
+
+// how many seconds it should wait after a throw before allowing image dragging again
+const throwTimer = 0.8; 
 // the minimum velocity to drag a image
 const dragVelocityThreshold = 100;
 // the minimum velocity to throw
 const throwVelocityThreshold = 1000;
 // should be the same as data-throwable value
 const throwVelocity = 1.5;
+// the image HTML id
+const imageID = 'image';
+
+// leap motion html element ID
+const leapID = 'leapInfo';
+// leap motion warning messages
+const leapServerMessage = 'Waiting for the Leap Motion Controller server...';
+const leapConnectMessage = 'Please connect your Leap Motion Controller if you want to use it.';
+const leapConnectedMessage = '';
 
 init();
 
@@ -20,7 +29,7 @@ function init()
 {
 	lastThrow = new Date();
 
-	leapInfo = this.leapInfo = document.getElementById('leapInfo');
+	leapInfo = this.leapInfo = document.getElementById(leapID);
 	isServerConnected = false;
 	isConnected: true;
 	options = {enableGestures: false};
@@ -54,54 +63,56 @@ function updateInfo()
 {
 	if(!isServerConnected)
 	{
-		leapInfo.innerHTML = 'Waiting for the Leap Motion Controller server...';
+		leapInfo.innerHTML = leapServerMessage;
 		leapInfo.style.display = 'block';
 	}
 	else if(isConnected)
 	{
-		leapInfo.innerHTML = '';
-		leapInfo.style.display = 'none';
+		leapInfo.innerHTML = leapConnectedMessage;
+
+		if (leapConnectedMessage === ''){
+			leapInfo.style.display = 'none';
+		}
 	}
 	else if(!isConnected)
 	{
-		leapInfo.innerHTML = 'Please connect your Leap Motion Controller if you want to use it.';
+		leapInfo.innerHTML = leapConnectMessage;
 		leapInfo.style.display = 'block';
 	}
 }
 
 function onFrame(frame)
 {
-	//console.log("Frame event for frame " + frame.id);
+    if(!isConnected || !frame.valid || frame.hands.length <= 0 || !canDoGesture()) {
+    	return;
+    }
 
-    if(!isConnected || !frame.valid) return;
+    //console.log("Frame event for frame " + frame.id);
 
-  	// Retrieves first hand - no need to get it by ID, since we're not fetching hand based time behaviour
-  	if (frame.hands.length > 0) {
+	var velocityX = frame.hands[0].palmVelocity[0];
+	//console.log(velocityX);
 
-  		hand = frame.hands[0];
+	if (velocityX < -throwVelocityThreshold || velocityX > throwVelocityThreshold){
+		$('#' + imageID).reel('velocity', throwVelocity);
+		lastThrow = new Date();
+		return;
+	} 
 
-  		var velocityX = hand.palmVelocity[0];
+	var transform = Math.round(velocityX / dragVelocityThreshold);
+	//console.log(transform);
 
-  		// debug
-  		console.log(velocityX);
+	jumpSteps(transform);
+}
 
-  		if (!canDoGesture()){
-  			return;
-  		}
+function jumpSteps(amount){
+	var stepCode = amount >= 0 ? 'stepRight' : 'stepLeft';
 
-  		if (velocityX > dragVelocityThreshold){
-  			$('#image').trigger("stepRight");
-  		}
-  		else if (velocityX < -dragVelocityThreshold){
-  			$('#image').trigger("stepLeft");
-  		}
+	amount = Math.abs(amount);
 
-  		if (velocityX < -throwVelocityThreshold || velocityX > throwVelocityThreshold){
-			$('#image').reel('velocity', throwVelocity);
-			lastThrow = new Date();
-  		} 
-
-  	}
+	// for performance reasons (at least in chrome and firefox), it's better to use a while loop (vs. for)
+	while(amount--){
+		$('#' + imageID).trigger(stepCode);
+	}
 }
 
 function canDoGesture()
