@@ -5,18 +5,22 @@ var controller = null;
 var options = null;
 var isConnected = null;
 
-// how many seconds it should wait after a throw before allowing image dragging again
-const throwTimer = 0.8; 
+// the image HTML element ID
+const imageID = 'image';
+// the number of frames to step per dragVelocityThreshold; default 1
+// e.g., 0.5 would make it take half the steps, where 2 would double the steps taken
+// i.e., Math.round(handVelocity / dragVelocityThreshold * dragSpeedFactor)
+const dragSpeedFactor = 1;
 // the minimum velocity to drag a image
 const dragVelocityThreshold = 100;
 // the minimum velocity to throw
 const throwVelocityThreshold = 800;
 // should be the same as data-throwable value
 const throwVelocity = 1.5;
-// the image HTML id
-const imageID = 'image';
+// how many seconds it should wait after a throw before allowing image dragging again
+const throwTimer = 0.8; 
 
-// leap motion html element ID
+// leap motion HTML element ID
 const leapID = 'leapInfo';
 // leap motion warning messages
 const leapServerMessage = 'Waiting for the Leap Motion Controller server...';
@@ -105,7 +109,7 @@ function onFrame(frame)
 		return;
 	} 
 
-	var transform = Math.round(velocityX / dragVelocityThreshold);
+	var transform = Math.round(velocityX / dragVelocityThreshold * dragSpeedFactor);
 	//console.log(transform);
 
 	jumpSteps(transform, steppingRight);
